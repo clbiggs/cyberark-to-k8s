@@ -13,44 +13,10 @@
 
 ## Description
 
-This is a GitHub repository template for a Go application.
-You can use it:
+This is a Kubernetes Controller to sync Secrets with CyberArk vaults.
 
-- to create a new repository with automation and environment setup,
-- as reference when improving automation for an existing repository.
 
-It includes:
-
-- continuous integration via [GitHub Actions](https://github.com/features/actions),
-- build automation via [Make](https://www.gnu.org/software/make),
-- dependency management using [Go Modules](https://github.com/golang/go/wiki/Modules),
-- code formatting using [gofumpt](https://github.com/mvdan/gofumpt),
-- linting with [golangci-lint](https://github.com/golangci/golangci-lint)
-  and [misspell](https://github.com/client9/misspell),
-- unit testing with
-  [race detector](https://blog.golang.org/race-detector),
-  code coverage [HTML report](https://blog.golang.org/cover)
-  and [Codecov report](https://codecov.io/),
-- releasing using [GoReleaser](https://github.com/goreleaser/goreleaser),
-- dependencies scanning and updating thanks to [Dependabot](https://dependabot.com),
-- security code analysis using [CodeQL Action](https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/about-code-scanning),
-  and [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck),
-- [Visual Studio Code](https://code.visualstudio.com) configuration with [Go](https://code.visualstudio.com/docs/languages/go) support.
-
-## Usage
-
-1. Sign up on [Codecov](https://codecov.io/) and configure
-   [Codecov GitHub Application](https://github.com/apps/codecov).
-1. Click the `Use this template` button (alt. clone or download this repository).
-1. Replace all occurrences of `clbiggs/cyberark-to-k8s` to `your_org/repo_name` in all files.
-1. Replace all occurrences of `seed` to `repo_name` in [Dockerfile](Dockerfile).
-1. Follow [these](https://docs.codecov.com/docs/adding-the-codecov-token#github-actions)
-   instructions to add the `CODECOV_TOKEN` GitHub Actions and Dependabot secret.
-1. Update the following files:
-   - [CHANGELOG.md](CHANGELOG.md)
-   - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-   - [LICENSE](LICENSE)
-   - [README.md](README.md)
+[CyberArk Api Documentation](https://docs.cyberark.com/privilege-cloud-standard/latest/en/content/webservices/getpasswordvaluev10.htm?tocpath=Developers%7CREST-APIs%7CREST%20APIs%7CAccounts%7CAccount%20actions%7C_____3)
 
 ## Setup
 
