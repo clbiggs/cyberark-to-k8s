@@ -1,4 +1,4 @@
-module github.com/golang-templates/seed
+module github.com/clbiggs/cyberark-to-k8s
 
 go 1.24.0
 

@@ -1,3 +1,3 @@
 FROM scratch
-COPY seed /
-ENTRYPOINT ["/seed"]
+COPY cyberark-to-k8s /
+ENTRYPOINT ["/cyberark-to-k8s"]
