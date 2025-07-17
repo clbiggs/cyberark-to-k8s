@@ -1,5 +1,13 @@
 SHELL := /bin/bash
 
+TOOLS_MOD_DIR := ./tools
+TOOLS_DIR := $(abspath ./.tools)
+CRDS_DIR := $(abspath ./crds)
+
+$(TOOLS_DIR)/controller-gen: $(TOOLS_MOD_DIR)/go.mod $(TOOLS_MOD_DIR)/go.sum $(TOOLS_MOD_DIR)/tools.go
+	cd $(TOOLS_MOD_DIR) && \
+	go build -o $(TOOLS_DIR)/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen
+
 .DEFAULT_GOAL := all
 
 .PHONY: all
@@ -68,3 +76,15 @@ test: ## go test
 diff: ## git diff
 	git diff --exit-code
 	RES=$$(git status --porcelain) ; if [ -n "$$RES" ]; then echo $$RES && exit 1 ; fi
+
+.PHONY: codegen
+codegen:
+	./hack/update-codegen.sh
+
+.PHONY: crdgen
+crdgen: $(TOOLS_DIR)/controller-gen
+	$(TOOLS_DIR)/controller-gen \
+		crd:crdVersions=v1 \
+  		paths=./pkg/k8s/apis/cyberark/v1alpha1/... \
+  		output:crd:artifacts:config=./crds
+	mv $(CRDS_DIR)/biggs.cl_cyberarks.yaml $(CRDS_DIR)/CyberArk.yaml
