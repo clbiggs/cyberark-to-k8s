@@ -4,7 +4,8 @@ before:
   hooks:
     - go mod download
 builds:
-  - env:
+  - main: ./cmd
+    env:
       - CGO_ENABLED=0
     goos:
       - darwin
@@ -15,14 +16,14 @@ builds:
 archives:
   - format_overrides:
       - goos: windows
-        formats: 
+        formats:
           - zip
 dockers:
   - image_templates:
-    - "ghcr.io/golang-templates/seed:latest"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}.{{ .Minor }}"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+    - "ghcr.io/clbiggs/cyberark2k8s:latest"
+    - "ghcr.io/clbiggs/cyberark2k8s:{{ .Major }}"
+    - "ghcr.io/clbiggs/cyberark2k8s:{{ .Major }}.{{ .Minor }}"
+    - "ghcr.io/clbiggs/cyberark2k8s:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
     build_flag_templates:
     - "--pull"
     # OCI annotations: https://github.com/opencontainers/image-spec/blob/main/annotations.md
