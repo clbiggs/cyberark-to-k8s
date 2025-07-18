@@ -69,7 +69,3 @@ type CyberArkList struct {
 
 	Items []CyberArk `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&CyberArk{}, &CyberArkList{})
-}
