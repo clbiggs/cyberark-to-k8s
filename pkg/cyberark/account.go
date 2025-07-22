@@ -1,4 +1,4 @@
-package client
+package cyberark
 
 type Account struct {
 	CategoryModificationTime  int64             `json:"categoryModificationTime"`
