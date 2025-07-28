@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,6 +38,7 @@ const (
 type errorResponse struct {
 	ErrorCode    string `json:"ErrorCode"`
 	ErrorMessage string `json:"ErrorMessage"`
+	Message      string `json:"Message"`
 }
 
 type ClientError struct {
@@ -45,7 +47,12 @@ type ClientError struct {
 }
 
 func NewClientErrorFromResponse(jsonError errorResponse) *ClientError {
-	return NewClientError(jsonError.ErrorCode, jsonError.ErrorMessage)
+	msg := jsonError.ErrorMessage
+	if msg == "" {
+		msg = jsonError.Message
+	}
+
+	return NewClientError(jsonError.ErrorCode, msg)
 }
 
 func NewClientError(code, message string) *ClientError {
@@ -75,6 +82,14 @@ func (c *Client) apiURL(target string) string {
 	return fmt.Sprintf(target, c.Subdomain)
 }
 
+func (c *Client) newAuthorizedRequestWithContext(ctx context.Context, method string, url string, body io.Reader, token Session) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err == nil {
+		req.Header.Add("Authorization", string(token))
+	}
+	return req, err
+}
+
 func (c *Client) Logon(ctx context.Context, logonMethod, username, password string) (*Session, error) {
 	if username == "" {
 		return nil, errors.New("username is required")
@@ -92,10 +107,13 @@ func (c *Client) Logon(ctx context.Context, logonMethod, username, password stri
 
 	url := fmt.Sprintf("%s%s/Logon/", c.apiURL(authBaseURL), logonMethod)
 
+	slog.Debug("attempting logon", "url", url)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create logon request, error: %+w", err)
 	}
+	req.Header.Add("content-type", "application/json")
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -103,19 +121,20 @@ func (c *Client) Logon(ctx context.Context, logonMethod, username, password stri
 	}
 
 	defer resp.Body.Close()
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body, error: %+w", err)
+	}
+
 	switch resp.StatusCode {
 	case http.StatusOK:
-		responseBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read body, error: %+w", err)
-		}
-
 		sessionToken := Session(strings.Trim(string(responseBody), "\""))
 		return &sessionToken, nil
 
 	default:
+		slog.Debug("logon error", "response", responseBody)
 		var jsonError errorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&jsonError); err != nil {
+		if err := json.Unmarshal(responseBody, &jsonError); err != nil {
 			return nil, NewClientError(strconv.Itoa(resp.StatusCode), fmt.Sprintf("Logon failed with response from api: %s, %+v", resp.Status, err))
 		}
 		return nil, NewClientErrorFromResponse(jsonError)
@@ -127,9 +146,9 @@ func (c *Client) Logoff(ctx context.Context, session Session) error {
 		return nil
 	}
 
-	url := c.apiURL(authBaseURL) + "/Logon/"
+	url := c.apiURL(authBaseURL) + "/Logoff/"
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := c.newAuthorizedRequestWithContext(ctx, http.MethodPost, url, nil, session)
 	if err != nil {
 		return fmt.Errorf("failed to create logoff request, error: %+w", err)
 	}
@@ -140,12 +159,18 @@ func (c *Client) Logoff(ctx context.Context, session Session) error {
 	}
 
 	defer resp.Body.Close()
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read body, error: %+w", err)
+	}
+
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return nil
 	default:
+		slog.Debug("logoff error", "response", responseBody)
 		var jsonError errorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&jsonError); err != nil {
+		if err := json.Unmarshal(responseBody, &jsonError); err != nil {
 			return NewClientError(strconv.Itoa(resp.StatusCode), fmt.Sprintf("Logon failed with response from api: %s. %+v", resp.Status, err))
 		}
 		return NewClientErrorFromResponse(jsonError)
