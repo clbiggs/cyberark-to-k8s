@@ -14,6 +14,10 @@ type Account struct {
 	CreatedTime               int64             `json:"createdTime"`
 }
 
+type AccountResponseList struct {
+	Value []Account `json:"value"`
+}
+
 type SecretType string
 
 const (
@@ -39,3 +43,8 @@ const (
 )
 
 type Password string
+
+type PasswordDetails struct {
+	Password Password
+	Message  string
+}
