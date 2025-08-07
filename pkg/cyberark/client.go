@@ -65,7 +65,16 @@ const (
 	SavedFilterFavorites              = "Favorites"
 )
 
-var validSearchTypes = []string{SearchTypeContains, SearchTypeStartsWith}
+var (
+	validSearchTypes  = []string{SearchTypeContains, SearchTypeStartsWith}
+	validSavedFilters = []string{
+		SavedFilterRegular, SavedFilterRecently, SavedFilterNew, SavedFilterLink, SavedFilterDeleted,
+		SavedFilterPolicyFailures, SavedFilterAccessedByUsers, SavedFilterModifiedByUsers, SavedFilterModifiedByCPM,
+		SavedFilterDisabledPasswordByUser, SavedFilterDisabledPasswordByCPM, SavedFilterScheduledForChange,
+		SavedFilterScheduledForVerify, SavedFilterScheduledForReconcile, SavedFilterFailedChange,
+		SavedFilterFailedVerify, SavedFilterFailedReconcile, SavedFilterLockedOrNew, SavedFilterLocked, SavedFilterFavorites,
+	}
+)
 
 type errorResponse struct {
 	ErrorCode    string `json:"ErrorCode"`
@@ -255,19 +264,57 @@ func (c *Client) RetrievePassword(ctx context.Context, session Session, accountI
 	}
 }
 
-func (c *Client) RetrieveAccounts(ctx context.Context, session Session, searchKeywords []string, searchType string, sort string, offset *int, limit *int, filter string, savedFilter string) ([]Account, error) {
-	url := c.apiURL(accountsBaseURL)
+func (c *Client) RetrieveAccount(ctx context.Context, session Session, accountID string) (*Account, error) {
+	url := fmt.Sprintf("%s/%s/", c.apiURL(accountsBaseURL), url.QueryEscape(accountID))
 
 	req, err := c.newAuthorizedRequestWithContext(ctx, http.MethodGet, url, nil, session)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create retrieve account request, error: %+w", err)
 	}
 
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error sending request, error: %+w", err)
+	}
+
+	defer resp.Body.Close()
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body, error: %+w", err)
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var accountDetails Account
+		if err := json.Unmarshal(responseBody, &accountDetails); err != nil {
+			return nil, fmt.Errorf("error parsing response, error: %+w", err)
+		}
+
+		return &accountDetails, nil
+
+	default:
+		slog.Debug("retrieve account error", "response", responseBody)
+		var jsonError errorResponse
+		if err := json.Unmarshal(responseBody, &jsonError); err != nil {
+			return nil, NewClientError(strconv.Itoa(resp.StatusCode), fmt.Sprintf("account retrieval failed with response from api: %s, %+v", resp.Status, err))
+		}
+		return nil, NewClientErrorFromResponse(jsonError)
+	}
+}
+
+func (c *Client) RetrieveAccounts(ctx context.Context, session Session, searchKeywords []string, searchType string, sort string, offset *int, limit *int, filter string, savedFilter string) ([]Account, error) {
+	url := c.apiURL(accountsBaseURL)
+
+	req, err := c.newAuthorizedRequestWithContext(ctx, http.MethodGet, url, nil, session)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create retrieve accounts request, error: %+w", err)
+	}
+
 	req.Header.Add("content-type", "application/json")
 
 	err = buildAccountParams(req.URL.Query(), searchKeywords, searchType, sort, offset, limit, filter, savedFilter)
 	if err != nil {
-		return nil, fmt.Errorf("invalid account retrieval parameters, error: %+w", err)
+		return nil, fmt.Errorf("invalid account retrievals parameters, error: %+w", err)
 	}
 
 	resp, err := c.HTTPClient.Do(req)
@@ -294,7 +341,7 @@ func (c *Client) RetrieveAccounts(ctx context.Context, session Session, searchKe
 		slog.Debug("retrieve accounts error", "response", responseBody)
 		var jsonError errorResponse
 		if err := json.Unmarshal(responseBody, &jsonError); err != nil {
-			return nil, NewClientError(strconv.Itoa(resp.StatusCode), fmt.Sprintf("password retrieval failed with response from api: %s, %+v", resp.Status, err))
+			return nil, NewClientError(strconv.Itoa(resp.StatusCode), fmt.Sprintf("accounts retrieval failed with response from api: %s, %+v", resp.Status, err))
 		}
 		return nil, NewClientErrorFromResponse(jsonError)
 	}
@@ -312,17 +359,21 @@ func buildAccountParams(params url.Values, searchKeywords []string, searchType s
 		params.Add("searchtype", searchType)
 	}
 
-	// TODO: Need to Validate these parameters
-
 	if sort != "" {
 		params.Add("sort", sort)
 	}
 
 	if offset != nil {
+		if *offset < 0 {
+			return errors.New("offset must be greater than or equal to 0")
+		}
 		params.Add("offset", strconv.Itoa(*offset))
 	}
 
 	if limit != nil {
+		if *limit < 0 {
+			return errors.New("limit must be greater than or equal to 0")
+		}
 		params.Add("limit", strconv.Itoa(*limit))
 	}
 
@@ -331,6 +382,9 @@ func buildAccountParams(params url.Values, searchKeywords []string, searchType s
 	}
 
 	if savedFilter != "" {
+		if !slices.Contains(validSavedFilters, savedFilter) {
+			return fmt.Errorf("'%s' is not a valid saved filter", savedFilter)
+		}
 		params.Add("savedFilter", savedFilter)
 	}
 
