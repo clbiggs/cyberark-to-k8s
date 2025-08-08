@@ -1,10 +1,11 @@
 package v1alpha1
 
 import (
-	"github.com/clbiggs/cyberark-to-k8s/pkg/k8s/apis/cyberark"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/clbiggs/cyberark-to-k8s/pkg/k8s/apis/cyberark"
 )
 
 var (

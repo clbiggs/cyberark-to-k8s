@@ -3,6 +3,7 @@ SHELL := /bin/bash
 TOOLS_MOD_DIR := ./tools
 TOOLS_DIR := $(abspath ./.tools)
 CRDS_DIR := $(abspath ./crds)
+LINT_VER := v2.3.1
 
 $(TOOLS_DIR)/controller-gen: $(TOOLS_MOD_DIR)/go.mod $(TOOLS_MOD_DIR)/go.sum $(TOOLS_MOD_DIR)/tools.go
 	cd $(TOOLS_MOD_DIR) && \
@@ -53,9 +54,17 @@ build: ## goreleaser build
 spell: ## misspell
 	go tool misspell -error -locale=US -w **.md
 
+.PHONY: old-lint
+old-lint: ## golangci-lint
+	go tool golangci-lint run --fix --config .golangci.bck.yml
+
 .PHONY: lint
 lint: ## golangci-lint
-	go tool golangci-lint run --fix
+	$(TOOLS_DIR)/golangci-lint run --fix
+
+.PHONY: install-lint
+install-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(TOOLS_DIR) $(LINT_VER)
 
 .PHONY: vuln
 vuln: ## govulncheck
