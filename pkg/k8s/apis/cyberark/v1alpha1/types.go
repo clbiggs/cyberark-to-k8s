@@ -7,9 +7,10 @@ import (
 // +genclient
 // +kubebuilder:storageversion
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +kubebuilder:printcolumn:name="Account",type=string,JSONPath=`.spec.account.name`,description="Account to retrieve from cyberark"
-// +kubebuilder:printcolumn:name="Safe",type=string,JSONPath=`.spec.account.safe`,description="Cyberark safe containing account"
-// +kubebuilder:printcolumn:name="Secret",type=string,JSONPath=`.status.secretName`,description="Kubernetes secret name"
+// +kubebuilder:printcolumn:name="Account",type=string,JSONPath=`.status.account`,description="Account to retrieve from cyberark"
+// +kubebuilder:printcolumn:name="Safe",type=string,JSONPath=`.status.safe`,description="Safe name containing account"
+// +kubebuilder:printcolumn:name="Credential Updated",type=date,JSONPath=`.status.accountUpdate`,description="Date account/password was created/modified"
+// +kubebuilder:printcolumn:name="Secret",type=string,JSONPath=`.status.secretName`,description="Kubernetes secret name(s)"
 // +kubebuilder:printcolumn:name="Synced",type=date,JSONPath=`.status.lastSync`,description="When the account was last synced with secret"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`,description="When the resource was created"
 
@@ -23,10 +24,12 @@ type CyberArk struct {
 }
 
 type CyberArkStatus struct {
-	SecretHash    string      `json:"secretHash"`
-	LastSync      metav1.Time `json:"lastSync"`
-	AccountUpdate metav1.Time `json:"accountUpdate"`
-	SecretName    string      `json:"secretName"`
+	SecretHashes  map[string]string `json:"secretHashes"`
+	LastSync      metav1.Time       `json:"lastSync"`
+	AccountUpdate metav1.Time       `json:"accountUpdate"`
+	SecretName    string            `json:"secretName"`
+	Account       string            `json:"account"`
+	Safe          string            `json:"safe"`
 }
 
 type CyberArkSpec struct {
@@ -36,7 +39,7 @@ type CyberArkSpec struct {
 
 type CyberArkTarget struct {
 	// +optional
-	Secret CyberArkTargetSecret `json:"secret"`
+	Secret CyberArkTargetSecret `json:"secret,omitempty"`
 
 	// Add future targets here
 }
@@ -45,7 +48,7 @@ type CyberArkTargetSecret struct {
 	Name              string            `json:"name"`
 	UsernameKeys      []string          `json:"usernameKeys"`
 	PasswordKeys      []string          `json:"passwordKeys"`
-	AdditionalSecrets map[string]string `json:"additionalSecrets"`
+	AdditionalSecrets map[string]string `json:"additionalSecrets,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=contains;startswith
@@ -57,9 +60,11 @@ const (
 )
 
 type CyberArkAccount struct {
-	Name       string             `json:"name"`
-	Safe       string             `json:"safe"`
-	SearchType CyberArkSearchType `json:"searchType"`
+	ID         string             `json:"id,omitempty"`
+	UserName   string             `json:"userName,omitempty"`
+	SafeName   string             `json:"safeName,omitempty"`
+	Search     string             `json:"search,omitempty"`
+	SearchType CyberArkSearchType `json:"searchType,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

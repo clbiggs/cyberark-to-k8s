@@ -10,10 +10,15 @@ tool (
 )
 
 require (
+	github.com/a8m/envsubst v1.4.3
+	github.com/mitchellh/mapstructure v1.5.0
+	github.com/spf13/pflag v1.0.7
+	github.com/spf13/viper v1.19.0
 	k8s.io/apimachinery v0.34.0-beta.0
 	k8s.io/client-go v0.34.0-beta.0
 	k8s.io/code-generator v0.34.0-beta.0
 	sigs.k8s.io/controller-runtime v0.21.0
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -323,7 +328,6 @@ require (
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -404,8 +408,6 @@ require (
 	github.com/spf13/afero v1.12.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/cobra v1.9.1 // indirect
-	github.com/spf13/pflag v1.0.7 // indirect
-	github.com/spf13/viper v1.19.0 // indirect
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.2.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
@@ -505,6 +507,5 @@ require (
 	sigs.k8s.io/kind v0.24.0 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
-	sigs.k8s.io/yaml v1.6.0 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.5.0 // indirect
 )

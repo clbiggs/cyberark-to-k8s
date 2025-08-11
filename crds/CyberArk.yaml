@@ -16,14 +16,18 @@ spec:
   versions:
   - additionalPrinterColumns:
     - description: Account to retrieve from cyberark
-      jsonPath: .spec.account.name
+      jsonPath: .status.account
       name: Account
       type: string
-    - description: Cyberark safe containing account
-      jsonPath: .spec.account.safe
+    - description: Safe name containing account
+      jsonPath: .status.safe
       name: Safe
       type: string
-    - description: Kubernetes secret name
+    - description: Date account/password was created/modified
+      jsonPath: .status.accountUpdate
+      name: Credential Updated
+      type: date
+    - description: Kubernetes secret name(s)
       jsonPath: .status.secretName
       name: Secret
       type: string
@@ -60,19 +64,19 @@ spec:
             properties:
               account:
                 properties:
-                  name:
+                  id:
                     type: string
-                  safe:
+                  safeName:
+                    type: string
+                  search:
                     type: string
                   searchType:
                     enum:
                     - contains
                     - startswith
                     type: string
-                required:
-                - name
-                - safe
-                - searchType
+                  userName:
+                    type: string
                 type: object
               target:
                 properties:
@@ -93,7 +97,6 @@ spec:
                           type: string
                         type: array
                     required:
-                    - additionalSecrets
                     - name
                     - passwordKeys
                     - usernameKeys
@@ -105,20 +108,28 @@ spec:
             type: object
           status:
             properties:
+              account:
+                type: string
               accountUpdate:
                 format: date-time
                 type: string
               lastSync:
                 format: date-time
                 type: string
-              secretHash:
+              safe:
                 type: string
+              secretHashes:
+                additionalProperties:
+                  type: string
+                type: object
               secretName:
                 type: string
             required:
+            - account
             - accountUpdate
             - lastSync
-            - secretHash
+            - safe
+            - secretHashes
             - secretName
             type: object
         required:
