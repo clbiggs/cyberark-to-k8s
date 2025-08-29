@@ -60,7 +60,7 @@ func Load(configFileName string, flagSet *pflag.FlagSet, into any) error {
 // Each exported field in the options must have a `cfg` tag otherwise an error will occur.
 // - For fields, set `cfg` and `flag` so that `flag` is the name of the flag associated to this config option
 // - For exported fields that are not user facing, set the `cfg` to `,internal`
-// - For structs containing user facing fileds, set the `cfg` to `,squash`
+// - For structs containing user facing fileds, set the `cfg` to `,squash`.
 func registerFlags(v *viper.Viper, prefix string, flagSet *pflag.FlagSet, options any) error {
 	val := reflect.ValueOf(options)
 	var typ reflect.Type
@@ -106,7 +106,7 @@ func registerFlags(v *viper.Viper, prefix string, flagSet *pflag.FlagSet, option
 		}
 
 		if flagSet == nil {
-			return fmt.Errorf("flagset cannot be nil")
+			return errors.New("flagset cannot be nil")
 		}
 
 		f := flagSet.Lookup(flagName)
@@ -129,7 +129,7 @@ func decodeFromCfgTag(c *mapstructure.DecoderConfig) {
 }
 
 // isUnexported checks if a field name starts with a lowercase letter and therefore
-// if it is unexported
+// if it is unexported.
 func isUnexported(name string) bool {
 	if len(name) == 0 {
 		// This should never happen
@@ -157,7 +157,7 @@ func LoadYAML(configFileName string, into any) error {
 }
 
 // loadAndParseYaml reads the config from the filesystem and
-// execute the environment variable substitution
+// execute the environment variable substitution.
 func loadAndParseYaml(configFileName string) ([]byte, error) {
 	if configFileName == "" {
 		return nil, errors.New("no configuration file provided")
@@ -179,7 +179,7 @@ func loadAndParseYaml(configFileName string) ([]byte, error) {
 }
 
 // normalizeSubstitution normalizes dollar sights ($) with numerals like
-// $1 or $2 properly by correctly escaping them
+// $1 or $2 properly by correctly escaping them.
 func normalizeSubstitution(unparsedBuffer []byte) []byte {
 	unparsedString := string(unparsedBuffer)
 
